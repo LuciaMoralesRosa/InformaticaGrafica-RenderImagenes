@@ -1,0 +1,31 @@
+{
+    "files.associations": {
+        "string": "cpp",
+        "xstring": "cpp",
+        "stdexcept": "cpp",
+        "vector": "cpp",
+        "utility": "cpp",
+        "exception": "cpp",
+        "fstream": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "iterator": "cpp",
+        "memory": "cpp",
+        "optional": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp",
+        "tuple": "cpp",
+        "xiosbase": "cpp",
+        "cstdlib": "cpp",
+        "iosfwd": "cpp",
+        "format": "cpp",
+        "type_traits": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp",
+        "xutility": "cpp",
+        "ctime": "cpp",
+        "random": "cpp"
+    }
+}
