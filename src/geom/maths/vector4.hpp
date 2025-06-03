@@ -89,7 +89,7 @@ class Vector4 {
          * 
          * @return El vector direccion entre los dos puntos
          */
-        friend Vector4 distancia(Vector4 &p1, Vector4 &p2);
+        friend Vector4 distancia(Vector4 p1, Vector4 p2);
 
         /**
          * @brief Calcula el angulo entre dos direcciones

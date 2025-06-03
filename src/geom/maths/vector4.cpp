@@ -30,7 +30,7 @@ Vector4 prod_vectorial(const Vector4 &d1, const Vector4 &d2) {
                     0);
 }
 
-Vector4 distancia(Vector4 &p1, Vector4 &p2) {
+Vector4 distancia(Vector4 p1, Vector4 p2) {
     if(p1.es_direccion() || p2.es_direccion()) {
         throw runtime_error("No se puede calcular la distancia entre direcciones.");
     }
