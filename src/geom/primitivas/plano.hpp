@@ -4,6 +4,7 @@
 #include "primitiva.hpp"
 
 class Plano : public Primitiva {
+    
     private:
         Direccion normal;   // Normal del plano
         float d;            // Distancia desde el origen al plano
@@ -28,7 +29,7 @@ class Plano : public Primitiva {
         Direccion getNormal() const { return normal; }
 
         // Operaciones ---------------------------------------------------------
-        bool intersecta_con_rayo(Rayo rayo_a_comprobar) override;
+        bool intersecta_con_rayo(const Rayo& rayo, float& t) override;
 };
 
 #endif // PLANO_HPP

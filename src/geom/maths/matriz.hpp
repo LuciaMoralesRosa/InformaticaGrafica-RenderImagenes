@@ -25,7 +25,7 @@ class Matriz {
 
         // Constructores -------------------------------------------------------
         Matriz();
-        Matriz (float m[DIM][DIM]);
+        Matriz(float m[DIM][DIM]);
         
         // Setters -------------------------------------------------------------
         void setComponente(int i, int j, float valor) { m[i][j] = valor; }

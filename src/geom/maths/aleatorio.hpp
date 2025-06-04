@@ -43,4 +43,9 @@ class generador_aleatorios {
         float get() { return distribucion_uniforme(gen); }
 };
 
+extern generador_aleatorios aleatorio_unitario;
+
+float generar_aleatorio(float a, float b);
+
+
 #endif // ALEATORIO_HPP

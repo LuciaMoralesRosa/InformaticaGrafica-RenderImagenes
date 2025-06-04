@@ -8,6 +8,7 @@
 #include "matriz.hpp"
 
 using namespace std;
+class Matriz;
 
 // Clase de cuatro componentes que representa una coordenada homogenea en 3D
 class Vector4 {

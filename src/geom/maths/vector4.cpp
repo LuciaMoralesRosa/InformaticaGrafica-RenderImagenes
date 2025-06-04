@@ -6,7 +6,7 @@ float Vector4::modulo() const {
 
 // ------------------------------- Operaciones ------------------------------ //
 Vector4 Vector4::normalizar() const {
-    if(es_punto) {
+    if(es_punto()) {
         throw runtime_error("No se puede normalizar un punto.");
     }
     return *this / modulo();

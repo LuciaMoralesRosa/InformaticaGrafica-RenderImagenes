@@ -9,7 +9,7 @@ BUILD_DIR := build
 TEST_DIR := tests
 
 # Encuentra todos los .cpp del src
-SRC_FILES := $(wildcard $(SRC_DIR)/**/*.cpp) $(wildcard $(SRC_DIR)/*.cpp)
+SRC_FILES := $(wildcard $(SRC_DIR)/**/**/*.cpp) $(wildcard $(SRC_DIR)/**/*.cpp) $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 # Encuentra todos los .cpp del tests
@@ -63,7 +63,9 @@ $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 
 # Limpieza
 clean:
-	@echo "Eliminando archivos de compilación..."
-	@rm -rf $(BUILD_DIR) *.exe
+	@echo Eliminando archivos de compilación...
+	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
+	@if exist main.exe del /q main.exe
+	@if exist test.exe del /q test.exe
 
 .PHONY: all tests clean

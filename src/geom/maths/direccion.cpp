@@ -1,5 +1,7 @@
 #include "direccion.hpp"
 
+#include "aleatorio.hpp"
+
 // ------------------------------ Operaciones ------------------------------- //
 Vector4 convertir_a_vector4(Direccion d) {
     return Vector4(d.getX(), d.getY(), d.getZ(), 0);

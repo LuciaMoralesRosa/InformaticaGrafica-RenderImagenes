@@ -2,7 +2,7 @@
 #define PRIMITIVA_HPP
 
 #include "rayo.hpp"
-#include "../color/RGB.hpp"
+#include "../../color/RGB.hpp"
 #include "../maths/direccion.hpp"
 #include "../maths/punto.hpp"
 
@@ -13,7 +13,9 @@ class Primitiva {
 
     public:
         Primitiva(const RGB &emision = RGB()) : emision(emision) {}
-        virtual bool intersecta_con_rayo(Rayo rayo_a_comprobar) = 0;
+        virtual bool intersecta_con_rayo(const Rayo& rayo,  float& t) = 0;
+
+        RGB getEmision() const { return emision; }
 };
 
 #endif // PRIMITIVA_HPP
