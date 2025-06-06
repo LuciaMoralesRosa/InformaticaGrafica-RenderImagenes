@@ -56,6 +56,7 @@
         "xlocbuf": "cpp",
         "xlocinfo": "cpp",
         "xmemory": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "thread": "cpp"
     }
 }

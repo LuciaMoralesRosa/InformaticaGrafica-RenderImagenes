@@ -97,11 +97,11 @@ void PPM::escribir_imagen(const string ruta) const {
     for (int i = 0; i < altura; i++) {
         for (int j = 0; j < base; j++) {
             fichero << fixed << setprecision(0) <<
-                    (tripletasRGB[i*base + j][0] * c) / (m * RGB_VALOR) << " "
+                    (tripletasRGB[i*base + j][0] * c) / (m) << " "
                     << fixed << setprecision(0) << 
-                    (tripletasRGB[i*base + j][1] * c) / (m * RGB_VALOR) << " "
+                    (tripletasRGB[i*base + j][1] * c) / (m) << " "
                     << fixed << setprecision(0) << 
-                    (tripletasRGB[i*base + j][2] * c) / (m * RGB_VALOR) << "     ";
+                    (tripletasRGB[i*base + j][2] * c) / (m) << "     ";
         }
         fichero << endl;
     }

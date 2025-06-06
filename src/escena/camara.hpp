@@ -6,7 +6,8 @@
 #include "../geom/maths/vector4.hpp"
 #include "../geom/maths/direccion.hpp"
 #include "../geom/maths/punto.hpp"
-
+#include "../geom/primitivas/rayo.hpp"
+#include "../geom/maths/aleatorio.hpp"
 
 class Camara {
 
@@ -31,6 +32,7 @@ class Camara {
             int _base, int _altura);
 
         void posicion_aleatoria(vector<Punto>& posiciones, int rpp) const;
+        Rayo obtener_rayo_aleatorio_en_seccion(int a, int b);
 
 };
 
