@@ -47,6 +47,10 @@ class RGB {
 
 
         // Operadores ----------------------------------------------------------
+
+        friend RGB operator+(const RGB& c1, const RGB& c2);
+        friend RGB operator+=(RGB& c1, const RGB& c2);
+
         /**
          * @brief Acceso a los valores de los componentes RGB.
          * 

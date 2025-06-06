@@ -35,7 +35,7 @@ bool DivisorSector::obtener_seccion(Rango_seccion& puntos_seccion) {
 
     // Por pantalla
     //cout << "\033[" << 1 << "A";
-    cout << "Renderizado: " << (++seccion_actual * 100 / total_secciones) << "%" << endl;
+    //cout << "Renderizado: " << (++seccion_actual * 100 / total_secciones) << "%" << endl;
 
     mutex.unlock();
     return true;

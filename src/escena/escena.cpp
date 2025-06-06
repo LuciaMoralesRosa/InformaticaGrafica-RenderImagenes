@@ -4,83 +4,94 @@
 #include <thread>
 
 
+const int N_REBOTES = 1;
 
-void Escena::renderizar_seccion(int RPP, int minX, int maxX, int minY, int maxY) {
+Primitiva* Escena::intersectar_primitiva(const Rayo& rayo, float& min_t, float& t) {
+    
+	Primitiva* primitiva_intersectada = nullptr;
+    for (Primitiva* p : primitivas) {
+		if (p->intersecta_con_rayo(rayo, t) && t < min_t) {
+            min_t = t;
+            primitiva_intersectada = p;
+        }
+    }
+    return primitiva_intersectada; // nullptr si no hay intersección
+}
 
-	RGB colorPixel;										// Color del pixel
-	RGB colorRayo;										// Color del rayo
-	Rayo rayoCamara;									// Rayo actual desde la camara
-	float t;										// Distancia a la primitiva mas cercana
-	Punto pInter;										// Punto de interseccion del rayo con primitiva
-	RGB colorEmitido;									// Color emitido por la primitiva
 
+bool Escena::gestionar_rebotes(Primitiva*& primitiva_intersectada, Rayo& rayo) {
+	float menor_distancia_a_primitiva = 1e10;
+	float distancia_a_primitiva;
+
+	primitiva_intersectada = intersectar_primitiva(
+		rayo,
+		menor_distancia_a_primitiva,
+		distancia_a_primitiva
+	);
+	if(primitiva_intersectada == nullptr) {
+		cout << "Es nulo" << endl;
+
+		return false;
+	}
+
+	return true;
+	
+	//gestionar_interseccion(p);
+
+}
+
+void Escena::renderizar_seccion(int RPP, int x_izquierda, int x_derecha, int y_abajo, int y_arriba) {
+
+	RGB color_pixel;						// Color del pixel
+	Rayo rayo;								// Rayo a evaluar
+	Primitiva* primitiva_intersectada = nullptr;
 
 	// Recorrer todos los pixeles de la seccion
-	for (int b = minX; b < maxX; b++){
-		for (int a = minY; a < maxY; a++) {
+	for (int b = x_izquierda; b < x_derecha; b++){
+		for (int a = y_abajo; a < y_arriba; a++) {
 
-			// Establecer color inicial del pixel a negro
-			colorPixel = RGB();
-
-			// Para cada rayo lanzado a este pixel, ie, N_RPP
+			color_pixel = RGB();
 			for (int k = 0; k < RPP; k++) {
+				// Generar rayo aleatorio desde la camara en el pixel
+                rayo = camara.obtener_rayo_aleatorio_en_seccion(a, b);
 
-				// Estavlecer color del rayo a negro
-				colorRayo = RGB();
-
-				// Establecer color de emision a blanco
-				colorEmitido = RGB(1);
-                rayoCamara = camara.obtener_rayo_aleatorio_en_seccion(a, b);
-
-                for (Primitiva* p : primitivas){
-                    if (p->intersecta_con_rayo(rayoCamara, t)) {
-                        // Si intersecta y tiene menor distancia guardamos el dato
-                        
-                        imagen[b*camara.base + a] = p->getEmision();;
-                    }
-                }
-
-            }
+				int rebote = 0;
+				bool terminar = false;
+				while(rebote < N_REBOTES) {
+					if(!gestionar_rebotes(primitiva_intersectada, rayo)) {
+						break;
+					}
+					rebote++;
+				}
+				color_pixel = color_pixel + primitiva_intersectada->getEmision();				
+			}
+			imagen[b*camara.base + a] = color_pixel;
 		}
 	}
 }
 
-void Escena::lanzar_hilos(int RPP, DivisorSector& sectores, int n_sectores) {
+
+void Escena::renderizar_escena(int RPP, int n_sectores) {
+    // Dividir escena en sectores
+    DivisorSector sectores(camara.base, camara.altura, n_sectores);
+
 	vector<thread> arrayHilos(n_sectores);
-	cout << "Creando hilos... " << endl;
 	for (int t = 0; t < n_sectores; t++) {
-		arrayHilos[t] = thread([this, RPP, &sectores]() {
-			try {
-				Rango_seccion rs;
-				while (sectores.obtener_seccion(rs)) {
-					this->renderizar_seccion(
-						RPP,
-						rs.superior_izquierda.x,
-						rs.inferior_derecha.x,
-						rs.superior_izquierda.y,
-						rs.inferior_derecha.y
-					);
-				}
-			} catch (const std::exception& e) {
-				std::cerr << "Excepción capturada en hilo: " << e.what() << std::endl;
-			} catch (...) {
-				std::cerr << "Excepción desconocida en hilo." << std::endl;
+		arrayHilos[t] = thread([this, RPP, &sectores](){
+			Rango_seccion rs;
+			while (sectores.obtener_seccion(rs)) {
+				this->renderizar_seccion(
+                    RPP,
+                    rs.superior_izquierda.x,
+                    rs.inferior_derecha.x,
+                    rs.superior_izquierda.y,
+                    rs.inferior_derecha.y
+                );
 			}
 		});
 	}
 
 	for (int t = 0; t < n_sectores; t++){
 		arrayHilos[t].join();	
-	} 
-}
-
-void Escena::renderizar_escena(int RPP, int n_sectores) {
-    vector<Punto> puntos_rayos;
-
-    // Dividir escena en secciones
-    DivisorSector sectores(camara.base, camara.altura, n_sectores);
-	cout << "Sectores creados..." << endl;
-    lanzar_hilos(RPP, sectores, n_sectores);
-
-
+	}
 }

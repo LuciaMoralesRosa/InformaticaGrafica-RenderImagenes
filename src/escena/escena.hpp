@@ -18,8 +18,10 @@ class Escena {
         vector<Luz*> luces;
         vector<RGB> imagen;
         
-        void lanzar_hilos(int RPP, DivisorSector& sectores, int n_sectores);
-        void renderizar_seccion(int RPP, int minX, int maxX, int minY, int maxY);
+        void renderizar_seccion(int RPP, int x_izquierda, int x_derecha, int y_abajo, int y_arriba);
+        bool gestionar_rebotes(Primitiva*& primitiva_intersectada, Rayo& rayo);
+        Primitiva* intersectar_primitiva(const Rayo& rayo, float& min_t, float& t);
+
     
     public:
         Escena(const Camara& _camara, const vector<Primitiva*>& _primitivas,
