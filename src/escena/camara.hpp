@@ -32,7 +32,7 @@ class Camara {
             int _base, int _altura);
 
         void posicion_aleatoria(vector<Punto>& posiciones, int rpp) const;
-        Rayo obtener_rayo_aleatorio_en_seccion(int a, int b);
+        Rayo obtener_rayo_aleatorio_en_seccion(int a, int b, generador_aleatorios& aleatorio);
 
 };
 

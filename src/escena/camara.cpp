@@ -48,14 +48,14 @@ void Camara::posicion_aleatoria(vector<Punto>& posiciones, int rpp) const {
 }
 
 
-Rayo Camara::obtener_rayo_aleatorio_en_seccion(int a, int b) {
-    generador_aleatorios aleatorio(0, 1);	// Generador numero aleatorio
+Rayo Camara::obtener_rayo_aleatorio_en_seccion(int a, int b, generador_aleatorios& aleatorio) {
     Punto punto_izquierda_superior = f + l + u;
+
     // antialising -> vector randomizado
     Direccion direccion_rayo = Direccion(punto_izquierda_superior
         - (a + aleatorio.get()) * base_pixel * l.normalizar()
         - (b + aleatorio.get()) * altura_pixel * u.normalizar());
-    
+
     // Crear el rayo desde la camara
     return Rayo(origen, direccion_rayo);
 }

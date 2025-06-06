@@ -45,6 +45,8 @@ void Escena::renderizar_seccion(int RPP, int x_izquierda, int x_derecha, int y_a
 	RGB color_pixel;						// Color del pixel
 	Rayo rayo;								// Rayo a evaluar
 	Primitiva* primitiva_intersectada = nullptr;
+	generador_aleatorios aleatorio(0, 1);	// Generador numero aleatorio
+
 
 	// Recorrer todos los pixeles de la seccion
 	for (int b = x_izquierda; b < x_derecha; b++){
@@ -53,7 +55,7 @@ void Escena::renderizar_seccion(int RPP, int x_izquierda, int x_derecha, int y_a
 			color_pixel = RGB();
 			for (int k = 0; k < RPP; k++) {
 				// Generar rayo aleatorio desde la camara en el pixel
-                rayo = camara.obtener_rayo_aleatorio_en_seccion(a, b);
+                rayo = camara.obtener_rayo_aleatorio_en_seccion(a, b, aleatorio);
 
 				int rebote = 0;
 				bool terminar = false;
@@ -65,7 +67,8 @@ void Escena::renderizar_seccion(int RPP, int x_izquierda, int x_derecha, int y_a
 				}
 				color_pixel = color_pixel + primitiva_intersectada->getEmision();				
 			}
-			imagen[b*camara.base + a] = color_pixel;
+			//cout << "Color del pixel " << color_pixel << endl;
+			imagen[b*camara.base + a] = color_pixel / RPP;
 		}
 	}
 }

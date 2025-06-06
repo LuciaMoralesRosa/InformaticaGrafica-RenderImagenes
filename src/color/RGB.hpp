@@ -50,6 +50,17 @@ class RGB {
 
         friend RGB operator+(const RGB& c1, const RGB& c2);
         friend RGB operator+=(RGB& c1, const RGB& c2);
+        friend RGB operator-(const RGB& c1, const RGB& c2);
+        friend RGB operator-=(RGB& c1, const RGB& c2);
+        friend RGB operator*(const RGB& c, double k);
+        friend RGB operator*=(RGB& c, double k);
+        friend RGB operator*(double k, const RGB& c);
+        friend RGB operator*(const RGB& c1, const RGB& c2);
+        friend RGB operator*=(RGB& c1, const RGB& c2);
+        friend RGB operator/(const RGB& c, double k);
+        friend RGB operator/=(RGB& c, double k);
+        friend bool operator==(RGB c1, RGB c2);
+        friend bool operator!=(RGB c1, RGB c2);
 
         /**
          * @brief Acceso a los valores de los componentes RGB.

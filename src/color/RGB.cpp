@@ -27,6 +27,55 @@ RGB operator+=(RGB& c1, const RGB& c2) {
     return c1;
 }
 
+RGB operator-(const RGB& c1, const RGB& c2) {
+    return RGB(c1.r - c2.r, c1.g - c2.g, c1.b - c2.b);
+}
+
+RGB operator-=(RGB& c1, const RGB& c2) {
+    c1 = c1 - c2;
+    return c1;
+}
+
+RGB operator*(const RGB& c, double k) {
+    return RGB(c.r * k, c.g * k, c.b * k);
+}
+
+RGB operator*=(RGB& c, double k) {
+    c = c * k;
+    return c;
+}
+
+RGB operator*(double k, const RGB& c) {
+    return RGB(c.r * k, c.g * k, c.b * k);  
+}
+
+RGB operator*(const RGB& c1, const RGB& c2) {
+    return RGB(c1.r * c2.r, c1.g * c2.g, c1.b * c2.b);
+}
+
+RGB operator*=(RGB& c1, const RGB& c2) {
+    c1 = c1 * c2;
+    return c1;
+}
+
+RGB operator/(const RGB& c, double k) {
+    return RGB(c.r / k, c.g / k, c.b / k);
+}
+
+RGB operator/=(RGB& c, double k) {
+    c = c / k;
+    return c;
+}
+
+bool operator==(RGB c1, RGB c2) {
+    return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
+}
+
+
+bool operator!=(RGB c1, RGB c2) {
+    return !(c1 == c2);
+}
+
 const float& RGB::operator[](int i) const {
     switch(i) {
 			case R:
