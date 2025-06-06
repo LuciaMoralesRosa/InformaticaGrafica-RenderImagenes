@@ -26,7 +26,7 @@ class Esfera : public Primitiva {
          * @param p Punto en la superficie de la esfera
          * @return Normal de la esfera en el punto
          */
-        Direccion getNormal(const Punto& p) const {
+        Direccion getNormal(const Punto& p) const override {
             return distancia(p, centro).normalizar();
         }
         

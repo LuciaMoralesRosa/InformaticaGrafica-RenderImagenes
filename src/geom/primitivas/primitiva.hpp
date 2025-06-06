@@ -16,6 +16,7 @@ class Primitiva {
         virtual bool intersecta_con_rayo(const Rayo& rayo,  float& t) = 0;
 
         RGB getEmision() const { return emision; }
+        virtual Direccion getNormal(const Punto& p) const = 0;
 };
 
 #endif // PRIMITIVA_HPP

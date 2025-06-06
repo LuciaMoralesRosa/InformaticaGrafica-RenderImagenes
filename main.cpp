@@ -19,6 +19,8 @@ void cornellBox() {
     camara = Camara(Punto(0, 0, -3.5), Direccion(-1, 0, 0), Direccion(0, 1, 0),
         Direccion(0, 0, 3), 256, 256);
 
+    luces.push_back(new Luz(RGB(255, 255, 255), Punto(0, 0.5, 0)));
+
 }
 
 using namespace std;

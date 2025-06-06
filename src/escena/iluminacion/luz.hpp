@@ -7,11 +7,14 @@
 class Luz {
     private:
         RGB potencia;
-        Punto posicion;
+        Punto centro;
     
         public:
-        Luz(const RGB& _potencia, const Punto& _posicion)
-            : potencia(_potencia), posicion(_posicion) {}
+        Luz(const RGB& _potencia, const Punto& _centro)
+            : potencia(_potencia), centro(_centro) {}
+
+        Punto getCentro() { return centro; }
+        RGB getPotencia() { return potencia; }
 };
 
 #endif // LUZ_HPP

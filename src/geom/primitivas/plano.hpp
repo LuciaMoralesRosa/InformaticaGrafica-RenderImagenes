@@ -26,7 +26,7 @@ class Plano : public Primitiva {
                 d(abs(prod_escalar(normal, distancia(Punto(), p)))) {}
 
         // Getters -------------------------------------------------------------
-        Direccion getNormal() const { return normal; }
+        Direccion getNormal(const Punto& p) const override { return normal; }
 
         // Operaciones ---------------------------------------------------------
         bool intersecta_con_rayo(const Rayo& rayo, float& t) override;
