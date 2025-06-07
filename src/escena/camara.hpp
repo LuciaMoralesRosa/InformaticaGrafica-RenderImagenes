@@ -23,16 +23,26 @@ class Camara {
 
     public:
 
-        // Constructor.
+        // Constructores -------------------------------------------------------
         Camara() {}
-
-        // Constructor.
         Camara(const Punto& _origen, const Direccion& _l,
             const Direccion& _u, const Direccion& _f,
             int _base, int _altura);
 
-        void posicion_aleatoria(vector<Punto>& posiciones, int rpp) const;
-        Rayo obtener_rayo_aleatorio_en_seccion(int a, int b, generador_aleatorios& aleatorio);
+
+        // Operaciones ---------------------------------------------------------
+        /**
+         * @brief Genera un rayo aleatorio que pasa por una sección específica
+         * del plano de la cámara, con desplazamientos aleatorios para antialiasing
+         * 
+         * @param a Coordenada horizontal dentro de la sección de la cámara
+         * @param b Coordenada vertical dentro de la sección de la cámara
+         * @param aleatorio Generador de números aleatorios
+         * 
+         * @return Rayo generado desde el origen de la cámara hacia el punto
+         *         desplazado en el plano.
+         */
+        Rayo rayo_aleatorio_en_seccion(int a, int b, generador_aleatorios& aleatorio);
 
 };
 

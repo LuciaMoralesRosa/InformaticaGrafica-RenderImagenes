@@ -88,7 +88,7 @@ class Vector4 {
          * @param p1 Primer punto
          * @param p2 Segundo punto
          * 
-         * @return El vector direccion entre los dos puntos
+         * @return El vector direccion de p2 a p1
          */
         friend Vector4 distancia(Vector4 p1, Vector4 p2);
 

@@ -2,10 +2,8 @@
 
 bool DivisorSector::obtener_seccion(Rango_seccion& puntos_seccion) {
     mutex.lock();
-    cout << "Se ejecuta el mutex.." << endl;
     if (division_completa) {
         // Ya no quedan mas secciones por tratar
-        cout << "No quedan mas secciones" << endl;
         mutex.unlock();
         // Cada hilo recibira su false
         return false;
@@ -32,10 +30,6 @@ bool DivisorSector::obtener_seccion(Rango_seccion& puntos_seccion) {
             division_completa = true;
         }
     }
-
-    // Por pantalla
-    //cout << "\033[" << 1 << "A";
-    //cout << "Renderizado: " << (++seccion_actual * 100 / total_secciones) << "%" << endl;
 
     mutex.unlock();
     return true;
