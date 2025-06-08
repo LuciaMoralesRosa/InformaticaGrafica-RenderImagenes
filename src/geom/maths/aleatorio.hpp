@@ -8,7 +8,7 @@ using namespace std;
 
 /**
  * @class generador_aleatorios
- * @brief Clase para generar números aleatorios en un rango continuo [a, b].
+ * @brief Clase para generar números aleatorios en un rango continuo [a, b).
  *
  * Esta clase utiliza el generador Mersenne Twister (mt19937) junto con una
  * distribución uniforme real para devolver números aleatorios de punto flotante
@@ -19,18 +19,18 @@ class generador_aleatorios {
         // Motor de generación de números aleatorios (Mersenne Twister).
         mt19937 gen;
 
-        // Distribución uniforme en el rango [a, b].
+        // Distribución uniforme en el rango [a, b).
         uniform_real_distribution<float> distribucion_uniforme;
 
     public:
         /**
-         * @brief Constructor que inicializa el generador con un rango [a, b].
+         * @brief Constructor que inicializa el generador con un rango [a, b).
          * 
          * Se utiliza la hora actual (std::time(0)) para generar una semilla diferente
          * en cada ejecución, garantizando números aleatorios distintos.
          * 
-         * @param a Límite inferior del rango (inclusive).
-         * @param b Límite superior del rango (inclusive).
+         * @param a Límite inferior del rango (incluido).
+         * @param b Límite superior del rango (no incluido).
          */
         generador_aleatorios(float a, float b) :
             gen(time(0)), distribucion_uniforme(a, b) {}

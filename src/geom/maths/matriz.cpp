@@ -94,7 +94,7 @@ bool Matriz::invertir_matriz() {
         // Si el pivote es cero, la matriz no es invertible
         float pivote = m[i][i];
         if(pivote == 0.0) {
-            cout << "Matriz cannt be inverted." << endl;
+            //cout << "Matriz cannt be inverted." << endl;
             return false;
         }
 

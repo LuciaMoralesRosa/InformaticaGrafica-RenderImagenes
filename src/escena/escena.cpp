@@ -8,7 +8,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-const int N_REBOTES = 1;
+const int N_REBOTES = 3;
 
 // -------------------------- Operaciones internas -------------------------- //
 /**
@@ -53,6 +53,12 @@ bool bloquea_luz(Primitiva* primitiva, Primitiva* p_bloqueadora, Rayo rayo_luz,
 	return (p_bloqueadora != primitiva || es_otro_punto);
 }
 
+
+RGB evaluacion_brdf(Primitiva* primitiva) {
+	return primitiva->getEmision() / M_PI;
+}
+
+
 /**
  * @brief Calcula la luz directa en el punto de interseccion de la primitiva
  * proporcionada por la luz
@@ -67,11 +73,63 @@ RGB calcular_luz_directa(Primitiva* primitiva, Luz l, Punto punto_interseccion) 
 	Direccion d = distancia(l.getCentro(), punto_interseccion);
 	float d_modulo = d.modulo();
 	RGB luz_entrada = l.getPotencia() / pow(d_modulo, 2);
-	RGB brdf = primitiva->getEmision() / M_PI;
+	
+	RGB brdf = evaluacion_brdf(primitiva);
+
 	Direccion n = primitiva->getNormal(punto_interseccion);
-	float n_distancia = prod_escalar(n, d);
-	float geometria = abs(n_distancia/ d_modulo);	
+	float n_distancia = prod_escalar(n, d.normalizar());
+	float geometria = abs(n_distancia);	
+
 	return luz_entrada*brdf*geometria;
+}
+
+float fRand(float fMin,float fMax){
+   std::uniform_real_distribution<float> unif(fMin,fMax);
+   std::default_random_engine re;
+   re.seed(rand()%10000);
+   float a_random_double = unif(re);
+   return a_random_double;
+}
+
+Direccion rebotar(Primitiva* primitiva, Punto centro) {
+	// Rebotar para difuso:
+	float theta = fRand(0.0,1.0);
+    float phi = fRand(0.0,1.0);
+    float thethaInverse = acos(sqrt(1-theta));
+    float phiInverse = 2 * M_PI * phi;
+
+    Direccion omegai = Direccion(sin(thethaInverse)*cos(phiInverse),sin(thethaInverse)*sin(phiInverse),cos(thethaInverse)).normalizar();
+
+    Direccion perp = primitiva->getNormal(centro).perpendicular();
+	float matriz[DIM][DIM];
+	matriz[0][0] = perp.getX();
+    matriz[0][1] = primitiva->getNormal(centro).getX();
+    matriz[0][2] =prod_vectorial(perp,primitiva->getNormal(centro)).getX();
+    matriz[0][3] = centro.getX();
+    matriz[1][0] = perp.getY();
+    matriz[1][1] = primitiva->getNormal(centro).getY();
+    matriz[1][2] = prod_vectorial(perp,primitiva->getNormal(centro)).getY();
+    matriz[1][3] = centro.getY();
+    matriz[2][0] = perp.getZ();
+    matriz[2][1] = primitiva->getNormal(centro).getZ();
+    matriz[2][2] = prod_vectorial(perp,primitiva->getNormal(centro)).getZ();
+    matriz[2][3] = centro.getZ();
+    matriz[3][0] = 0;
+    matriz[3][1] = 0;
+    matriz[3][2] = 0;
+    matriz[3][3] = 1;
+    Matriz local(matriz);
+
+    local.invertir_matriz();
+
+    Vector4 omegai2(omegai);
+
+    omegai2.cambiar_base(Vector4(local.m[0]),
+						 Vector4(local.m[1]),
+						 Vector4(local.m[2]),
+						 Vector4(local.m[3]));
+    return Direccion(omegai2);
+
 }
 // -------------------------- Operaciones internas -------------------------- //
 
@@ -93,7 +151,8 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 			// Multiples rayos por pixel para antialiasing
 			for (int k = 0; k < RPP; k++) {
                 rayo = camara.rayo_aleatorio_en_seccion(y, x, aleatorio);
-				color_pixel += lanzar_rayo(rayo);				
+				
+				color_pixel += lanzar_rayo(rayo, 0);				
 			}
 
 			// Promediar color acumulado por el número de muestras
@@ -103,8 +162,20 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 	}
 }
 
+RGB Escena::calcular_luz_directa_en_punto(Primitiva* primitiva,
+	Punto punto) {
+	// Calcular la contribucion de cada fuente de luz
+	RGB luz_directa = RGB();
+	for(Luz& luz : luces) {
+		if(!hay_primitiva_bloqueadora(primitiva, luz, punto)) {
+			luz_directa += calcular_luz_directa(primitiva, luz, punto);
+		}
+	}
+	return luz_directa;
+}	
 
-RGB Escena::lanzar_rayo(const Rayo& rayo) {
+
+RGB Escena::lanzar_rayo(const Rayo& rayo, int n_rebotes) {
 	Primitiva* primitiva = nullptr; // Primitiva intersectada 
 	float t = 0.0f; 				// Distancia a la interseccion
 
@@ -112,16 +183,19 @@ RGB Escena::lanzar_rayo(const Rayo& rayo) {
 		return RGB();
 	}
 
-	Punto punto_interseccion = rayo(t);
-	RGB luz_directa = RGB();
-
-	// Calcular la contribucion de cada fuente de luz
-	for(Luz& luz : luces) {
-		if(!hay_primitiva_bloqueadora(primitiva, luz, punto_interseccion)) {
-			luz_directa += calcular_luz_directa(primitiva, luz, punto_interseccion);
-		}
+	if(n_rebotes == N_REBOTES) {
+		return RGB();
 	}
-	return luz_directa;
+	Punto punto_interseccion = rayo(t);
+
+	n_rebotes++;
+	
+	RGB luz_directa = calcular_luz_directa_en_punto(primitiva, punto_interseccion);
+
+	Direccion wi = rebotar(primitiva, punto_interseccion);
+	RGB luz_indirecta = lanzar_rayo(Rayo(punto_interseccion, wi), n_rebotes);
+
+	return luz_indirecta + luz_directa;
 }
 
 

@@ -51,7 +51,12 @@ class Escena {
          * @return RGB El color resultante de la luz directa en el punto de
          *             intersección o negro si no hay intersección.
          */
-        RGB lanzar_rayo(const Rayo& rayo);
+        RGB lanzar_rayo(const Rayo& rayo, int n_rebotes);
+
+        
+        RGB calcular_luz_directa_en_punto(Primitiva* primitiva,
+            Punto punto_interseccion);
+
 
         /**
          * @brief Determina si un rayo intersecta con alguna primitiva de la
@@ -72,7 +77,8 @@ class Escena {
          * @return true si el rayo intersecta con alguna primitiva,
          *         false en caso contrario.
          */
-        bool intersecta_con_primitiva(Primitiva*& primitiva_intersectada, const Rayo& rayo, float& distancia_primitiva);
+        bool intersecta_con_primitiva(Primitiva*& primitiva_intersectada,
+            const Rayo& rayo, float& distancia_primitiva);
 
         /**
          * @brief Determina si existe alguna primitiva que bloquea la luz hacia

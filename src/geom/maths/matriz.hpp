@@ -19,10 +19,10 @@ class Matriz {
     
     private:
 	// Matriz representada como un array de 4x4
-	float m[DIM][DIM];
-
+    
     public:
-
+    
+	float m[DIM][DIM];
         // Constructores -------------------------------------------------------
         Matriz();
         Matriz(float m[DIM][DIM]);

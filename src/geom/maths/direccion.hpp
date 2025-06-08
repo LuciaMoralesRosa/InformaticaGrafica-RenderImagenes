@@ -20,6 +20,14 @@ class Direccion : public Vector4 {
          */
         Direccion direccion_aleatoria();
 
+        Direccion perpendicular(){
+            if ( (z != 0) && (-x != y) ) {
+                return Direccion(z, z, - x - y);
+            } else {
+                return Direccion(y - z, x, x);
+            }
+        }
+
         // Operadores ----------------------------------------------------------
         friend istream &operator>>(istream &i, Direccion &d);
 };

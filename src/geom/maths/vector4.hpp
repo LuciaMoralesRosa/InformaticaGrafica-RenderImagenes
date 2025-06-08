@@ -9,7 +9,6 @@
 
 using namespace std;
 class Matriz;
-
 // Clase de cuatro componentes que representa una coordenada homogenea en 3D
 class Vector4 {
     protected:
@@ -22,6 +21,7 @@ class Vector4 {
     public:
         Vector4(float x = 0, float y = 0, float z = 0, int es_punto = 0) :
             x(x), y(y), z(z), punto_direccion(es_punto) {}
+        Vector4(float* f) : x(f[0]), y(f[1]), z(f[2]), punto_direccion(f[3]) {}
 
         // Getters -------------------------------------------------------------
         float getX() const { return x; }
