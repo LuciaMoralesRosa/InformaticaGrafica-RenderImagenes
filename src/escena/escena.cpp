@@ -8,7 +8,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-const int N_REBOTES = 3;
+const int N_REBOTES = 2;
 
 // -------------------------- Operaciones internas -------------------------- //
 /**
@@ -76,60 +76,13 @@ RGB calcular_luz_directa(Primitiva* primitiva, Luz l, Punto punto_interseccion) 
 	
 	RGB brdf = evaluacion_brdf(primitiva);
 
+	// Calcular la cantidad de luz que llega dependiendo de como incide sobre la
+	// primitiva
 	Direccion n = primitiva->getNormal(punto_interseccion);
 	float n_distancia = prod_escalar(n, d.normalizar());
 	float geometria = abs(n_distancia);	
 
 	return luz_entrada*brdf*geometria;
-}
-
-float fRand(float fMin,float fMax){
-   std::uniform_real_distribution<float> unif(fMin,fMax);
-   std::default_random_engine re;
-   re.seed(rand()%10000);
-   float a_random_double = unif(re);
-   return a_random_double;
-}
-
-Direccion rebotar(Primitiva* primitiva, Punto centro) {
-	// Rebotar para difuso:
-	float theta = fRand(0.0,1.0);
-    float phi = fRand(0.0,1.0);
-    float thethaInverse = acos(sqrt(1-theta));
-    float phiInverse = 2 * M_PI * phi;
-
-    Direccion omegai = Direccion(sin(thethaInverse)*cos(phiInverse),sin(thethaInverse)*sin(phiInverse),cos(thethaInverse)).normalizar();
-
-    Direccion perp = primitiva->getNormal(centro).perpendicular();
-	float matriz[DIM][DIM];
-	matriz[0][0] = perp.getX();
-    matriz[0][1] = primitiva->getNormal(centro).getX();
-    matriz[0][2] =prod_vectorial(perp,primitiva->getNormal(centro)).getX();
-    matriz[0][3] = centro.getX();
-    matriz[1][0] = perp.getY();
-    matriz[1][1] = primitiva->getNormal(centro).getY();
-    matriz[1][2] = prod_vectorial(perp,primitiva->getNormal(centro)).getY();
-    matriz[1][3] = centro.getY();
-    matriz[2][0] = perp.getZ();
-    matriz[2][1] = primitiva->getNormal(centro).getZ();
-    matriz[2][2] = prod_vectorial(perp,primitiva->getNormal(centro)).getZ();
-    matriz[2][3] = centro.getZ();
-    matriz[3][0] = 0;
-    matriz[3][1] = 0;
-    matriz[3][2] = 0;
-    matriz[3][3] = 1;
-    Matriz local(matriz);
-
-    local.invertir_matriz();
-
-    Vector4 omegai2(omegai);
-
-    omegai2.cambiar_base(Vector4(local.m[0]),
-						 Vector4(local.m[1]),
-						 Vector4(local.m[2]),
-						 Vector4(local.m[3]));
-    return Direccion(omegai2);
-
 }
 // -------------------------- Operaciones internas -------------------------- //
 
@@ -151,8 +104,7 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 			// Multiples rayos por pixel para antialiasing
 			for (int k = 0; k < RPP; k++) {
                 rayo = camara.rayo_aleatorio_en_seccion(y, x, aleatorio);
-				
-				color_pixel += lanzar_rayo(rayo, 0);				
+				color_pixel += lanzar_rayo(rayo, aleatorio, 0);				
 			}
 
 			// Promediar color acumulado por el número de muestras
@@ -165,37 +117,112 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 RGB Escena::calcular_luz_directa_en_punto(Primitiva* primitiva,
 	Punto punto) {
 	// Calcular la contribucion de cada fuente de luz
+	Punto punto_bloqueo = punto;
 	RGB luz_directa = RGB();
 	for(Luz& luz : luces) {
-		if(!hay_primitiva_bloqueadora(primitiva, luz, punto)) {
+		if(!hay_primitiva_bloqueadora(primitiva, luz, punto_bloqueo)) {
 			luz_directa += calcular_luz_directa(primitiva, luz, punto);
 		}
 	}
+
 	return luz_directa;
 }	
 
+void isNan(float valor) {
+	if(isnan(valor)) {
+		cout << "Es NAN" << endl;
+	}
+}
 
-RGB Escena::lanzar_rayo(const Rayo& rayo, int n_rebotes) {
+void isNan(Direccion d) {
+	isNan(d.getX());
+	isNan(d.getY());
+	isNan(d.getZ());
+}
+
+void isNan(Vector4 v) {
+	isNan(v.getX());
+	isNan(v.getY());
+	isNan(v.getZ());
+}
+
+void isNan(Punto p) {
+	isNan(p.getX());
+	isNan(p.getY());
+	isNan(p.getZ());
+}
+
+Direccion direccion_aleatoria(generador_aleatorios g_a, Direccion normal, Punto interseccion, float& theta) {
+
+	theta = acos(g_a.get());
+	float phi = 2 * M_PI * g_a.get();
+	
+	Direccion wi_prima(
+		sin(theta) * cos(phi),
+		sin(theta) * sin(phi),
+		cos(theta)
+	);
+
+	Direccion n = normal.normalizar();
+
+	// Elegir vector auxiliar para evitar degeneración
+	Direccion auxiliar = (fabs(n.getX()) > 0.1f) ? Direccion(0, 1, 0) : Direccion(1, 0, 0);
+	Direccion u = prod_vectorial(auxiliar, n).normalizar();  // eje x local
+    Direccion v = prod_vectorial(n, u);                      // eje y local
+
+	// Transformar ω′ a coordenadas globales: ω = T · ω′
+    Direccion wi_global =
+        wi_prima.getX() * u +
+        wi_prima.getY() * v +
+        wi_prima.getZ() * n;
+
+	isNan(wi_global);
+
+	return wi_global.normalizar();
+}
+
+
+const float EPSILON = 1e-4;
+
+RGB Escena::lanzar_rayo(const Rayo& rayo, generador_aleatorios g_a, int n_rebotes) {
 	Primitiva* primitiva = nullptr; // Primitiva intersectada 
 	float t = 0.0f; 				// Distancia a la interseccion
-
-	if(!intersecta_con_primitiva(primitiva, rayo, t)) {
-		return RGB();
-	}
 
 	if(n_rebotes == N_REBOTES) {
 		return RGB();
 	}
+
+	if(!intersecta_con_primitiva(primitiva, rayo, t)) {
+		return RGB();
+	}
+	n_rebotes++;
+
+	// Reducimos un poco la distancia para que no sea pasada la primitiva
+	//t = t-EPSILON;
 	Punto punto_interseccion = rayo(t);
 
-	n_rebotes++;
-	
 	RGB luz_directa = calcular_luz_directa_en_punto(primitiva, punto_interseccion);
+	float theta = 0;
+	Direccion wi = direccion_aleatoria(g_a, primitiva->getNormal(punto_interseccion), punto_interseccion, theta);
+	Rayo wi_rayo = Rayo(punto_interseccion, wi);
+	RGB luz_indirecta = lanzar_rayo(wi_rayo, g_a, n_rebotes);
+	
+	RGB Lo = luz_directa + luz_indirecta*evaluacion_brdf(primitiva);
 
-	Direccion wi = rebotar(primitiva, punto_interseccion);
-	RGB luz_indirecta = lanzar_rayo(Rayo(punto_interseccion, wi), n_rebotes);
+	if(primitiva->getNombre() == "rosa") {
+		cout << "\n\n --------------------------------------------------------------" << endl;
+		cout << "PRIMITIVA: " << primitiva->getNombre() << " - rebote: " << n_rebotes << endl;
+		cout << "\t Theta = " << theta << endl;
+		cout << "\t evaluacion_brdf(primitiva) = " << evaluacion_brdf(primitiva) << endl;
+		cout << "\t cos(Theta) = " << cos(theta) << endl;
+		cout << "\t 2 * M_PI * cos(theta) = " << (2 * M_PI * cos(theta)) << endl;
+		cout << "\n\tLuz directa = " << luz_directa << endl;
+		cout << "\tLuz indirecta = " << luz_indirecta << endl;
+		cout << "\tLo = " << Lo << endl;
+		cout << "--------------------------------------------------------------\n\n" << endl;
+	}
 
-	return luz_indirecta + luz_directa;
+	return Lo;
 }
 
 

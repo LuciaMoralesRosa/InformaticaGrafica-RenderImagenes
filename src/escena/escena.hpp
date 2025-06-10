@@ -51,7 +51,7 @@ class Escena {
          * @return RGB El color resultante de la luz directa en el punto de
          *             intersección o negro si no hay intersección.
          */
-        RGB lanzar_rayo(const Rayo& rayo, int n_rebotes);
+        RGB lanzar_rayo(const Rayo& rayo, generador_aleatorios g_a, int n_rebotes);
 
         
         RGB calcular_luz_directa_en_punto(Primitiva* primitiva,
