@@ -32,7 +32,7 @@ int main() {
     Escena escena(camara, primitivas, luces);
     cout << "Escena creada..." << endl;
 
-    escena.renderizar_escena(1, 1);
+    escena.renderizar_escena(128, 32);
     cout << "Imagen renderizada..." << endl;
 
     PPM imagen("P3", "CornellBox", 255, escena.getBase(), escena.getAltura(), 255, escena.getImagen());

@@ -102,7 +102,6 @@ class Matriz {
 
         // Operadores ----------------------------------------------------------
         friend ostream &operator<< (ostream &o, const Matriz &m);
-
 };
 
 #endif // MATRIZ_HPP

@@ -2,10 +2,15 @@
 
 #include "aceleracion/sectores.hpp"
 #include "../geom/maths/vector4.hpp"
+#include "DAleatorio.hpp"
 #include <thread>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
+
+#ifndef M_E
+#define M_E 2.71828182845904523536
 #endif
 
 const int N_REBOTES = 2;
@@ -95,16 +100,23 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 	RGB color_pixel;						// Color acumulado por píxel
 	Rayo rayo;								// Rayo generado desde la cámara
 
+	Primitiva* primitiva = nullptr;
+	float t = 0.0f;
+
 	// Recorrer todos los pixeles del sector
 	for (int x = x_izquierda; x < x_derecha; x++){
 		for (int y = y_abajo; y < y_arriba; y++) {
 
-			color_pixel = RGB(); // Inicializar a negro
+			color_pixel = RGB(0.0, 0.0, 0.0); // Inicializar a negro
 			
 			// Multiples rayos por pixel para antialiasing
 			for (int k = 0; k < RPP; k++) {
                 rayo = camara.rayo_aleatorio_en_seccion(y, x, aleatorio);
-				color_pixel += lanzar_rayo(rayo, aleatorio, 0);				
+				if(intersecta_con_primitiva(primitiva, rayo, t)) {
+					Punto interseccion = rayo(t-1e-4);
+					color_pixel += lanzar_rayo_2(interseccion, rayo.getDireccion(), primitiva, primitiva->getNormal(interseccion), aleatorio, 0);				
+
+				}
 			}
 
 			// Promediar color acumulado por el número de muestras
@@ -113,6 +125,71 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 		}
 	}
 }
+
+
+// Devuelve la luz directa en un punto de la escena sobre una geometria difusa
+RGB Escena::estimacionSiguienteEvento(Punto x, Direccion wo, Primitiva* g, Direccion n, double sigma) {
+    RGB L = RGB({0.0,0.0,0.0});
+    for(Luz l : luces) {
+        Direccion wi = Direccion(l.getCentro() - x).normalizar();
+        double norma = prod_escalar(Direccion(l.getCentro() - x), Direccion(l.getCentro() - x));
+        double coseno = prod_escalar(n, wi);
+        RGB fr = evaluacion_brdf(g);
+        if (coseno > 0) {
+			Primitiva* p;
+			float distancia;
+			bool intersecta = intersecta_con_primitiva(p, Rayo(l.getCentro(),-wi), distancia);
+            if (intersecta && distancia >= sqrt(norma) - 0.0001) {
+                if (sigma == 0.0) L = L + (coseno*fr)*(l.getPotencia()/norma);
+                else L = L + (coseno*fr)*(l.getPotencia()/norma)*pow(M_E, -sigma*norma);
+            }
+        }
+    }
+    return L;
+}
+
+float maxEmision(RGB emision){
+	return max(emision.getG(), max(emision.getB(), emision.getR()));
+}
+
+RGB Escena::lanzar_rayo_2(Punto x, Direccion wo, Primitiva* primitiva,
+	Direccion n, generador_aleatorios aleatorio, int n_rebotes) {
+	Direccion wi;
+    Direccion normal = n;
+    if (prod_escalar(wo, n) > 0.0) normal = -normal;
+    DireccionMuestraAleatoria d = DireccionMuestraAleatoria(normal,x);
+    RGB fr, L;
+
+	Primitiva* p;
+	float distancia;
+
+	if(n_rebotes == N_REBOTES) {
+		return RGB();
+	}
+	wi = d.cosenoUniforme();
+	Rayo rayo_wi = Rayo(x, wi);
+	bool interseccion = intersecta_con_primitiva(p, rayo_wi, distancia);
+	if(!interseccion || distancia <= 0.0) {
+		return estimacionSiguienteEvento(x, wo, primitiva, normal);
+	}
+	n_rebotes++;
+	fr = primitiva->getEmision() / maxEmision(primitiva->getEmision());
+	L = fr*lanzar_rayo_2(rayo_wi(distancia), wi, p, p->getNormal(rayo_wi(distancia)), aleatorio, n_rebotes)
+			+ estimacionSiguienteEvento(x, wo, primitiva, normal);
+
+	return L;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 RGB Escena::calcular_luz_directa_en_punto(Primitiva* primitiva,
 	Punto punto) {
@@ -196,9 +273,9 @@ RGB Escena::lanzar_rayo(const Rayo& rayo, generador_aleatorios g_a, int n_rebote
 		return RGB();
 	}
 	n_rebotes++;
-
+	
 	// Reducimos un poco la distancia para que no sea pasada la primitiva
-	//t = t-EPSILON;
+	t = t-EPSILON;
 	Punto punto_interseccion = rayo(t);
 
 	RGB luz_directa = calcular_luz_directa_en_punto(primitiva, punto_interseccion);

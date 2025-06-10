@@ -19,6 +19,15 @@ class Escena {
         vector<RGB> imagen;
 
         // Operaciones privadas ------------------------------------------------
+
+        RGB lanzar_rayo_2(Punto x, Direccion wo, Primitiva* primitiva,
+            Direccion n, generador_aleatorios aleatorio, int n_rebotes);
+
+        RGB estimacionSiguienteEvento(Punto x, Direccion wo, Primitiva* g, Direccion n, double sigma = 0.0);
+
+
+
+
         /**
          * @brief Renderiza una sección de la imagen dividiendo en píxeles y
          * disparando múltiples rayos por píxel para realizar antialiasing.
