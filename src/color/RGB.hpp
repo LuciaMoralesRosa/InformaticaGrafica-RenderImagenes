@@ -38,6 +38,7 @@ class RGB {
         float getR() const {return r;}
         float getG() const {return g;}
         float getB() const {return b;}
+        float emision_maxima() const { return max(g, max(b,r)); }
 
 
         // Comprobaciones ------------------------------------------------------

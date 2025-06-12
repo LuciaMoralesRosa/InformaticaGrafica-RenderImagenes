@@ -57,6 +57,9 @@
         "xlocinfo": "cpp",
         "xmemory": "cpp",
         "xtr1common": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "mutex": "cpp",
+        "ratio": "cpp",
+        "stop_token": "cpp"
     }
 }

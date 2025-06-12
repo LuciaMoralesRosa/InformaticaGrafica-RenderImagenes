@@ -10,6 +10,7 @@
 #include "../geom/primitivas/plano.hpp"
 
 class DivisorSector;
+
 class Escena {
 
     private:
@@ -19,15 +20,6 @@ class Escena {
         vector<RGB> imagen;
 
         // Operaciones privadas ------------------------------------------------
-
-        RGB lanzar_rayo_2(Punto x, Direccion wo, Primitiva* primitiva,
-            Direccion n, generador_aleatorios aleatorio, int n_rebotes);
-
-        RGB estimacionSiguienteEvento(Punto x, Direccion wo, Primitiva* g, Direccion n, double sigma = 0.0);
-
-
-
-
         /**
          * @brief Renderiza una sección de la imagen dividiendo en píxeles y
          * disparando múltiples rayos por píxel para realizar antialiasing.
@@ -47,25 +39,6 @@ class Escena {
          */
         void renderizar_sector(int RPP, int x_izquierda, int x_derecha,
             int y_abajo, int y_arriba);
-        
-        /**
-         * @brief Calcula el color resultante al lanzar un rayo en la escena
-         * 
-         * Esta función determina si el rayo desde la camara intersecta alguna 
-         * primitiva. Si hay intersección, calcula la contribución de luz
-         * directa de todas las fuentes de luz visibles desde el punto de
-         * intersección, descartando aquellas bloqueadas.
-         * 
-         * @param rayo El rayo que se lanza desde la cámara u otra fuente.
-         * @return RGB El color resultante de la luz directa en el punto de
-         *             intersección o negro si no hay intersección.
-         */
-        RGB lanzar_rayo(const Rayo& rayo, generador_aleatorios g_a, int n_rebotes);
-
-        
-        RGB calcular_luz_directa_en_punto(Primitiva* primitiva,
-            Punto punto_interseccion);
-
 
         /**
          * @brief Determina si un rayo intersecta con alguna primitiva de la
@@ -89,36 +62,53 @@ class Escena {
         bool intersecta_con_primitiva(Primitiva*& primitiva_intersectada,
             const Rayo& rayo, float& distancia_primitiva);
 
-        /**
-         * @brief Determina si existe alguna primitiva que bloquea la luz hacia
-         *        un punto dado
-         * 
-         * Este método verifica primero si algún plano está en contraluz con
-         * respecto a la fuente de luz, y luego comprueba si alguna primitiva
-         * intermedia bloquea el camino de la luz desde la fuente hasta el punto
-         * de intersección
-         * 
-         * @param primitiva Puntero a la primitiva objetivo que recibe la luz
-         * @param luz Referencia a la fuente de luz considerada
-         * @param punto_interseccion Punto donde se evalúa la iluminación
-         * 
-         * @return true si alguna primitiva bloquea la luz hacia el punto,
-         *         false en caso contrario.
-         */
-        bool hay_primitiva_bloqueadora(Primitiva* primitiva, Luz& luz,
-            const Punto& punto);
 
         /**
-         * @brief Determina si una primitiva plana se encuentra a contraluz
-         *        respecto a una fuente de luz
-         *
-         * @param primitiva Puntero a la primitiva que se evaluará
-         * @param luz Fuente de luz respecto a la cual se evaluará la contraluz
+         * @brief Lanza un rayo desde un punto de intersección y calcula la
+         * radiancia resultante
          * 
-         * @return true si la primitiva está a contraluz,
-         *         false en caso contrario.
+         * Esta función implementa la lógica principal del trazado de rayos
+         * Evalúa la contribución de luz reflejada indirectamente a través de
+         * múltiples rebotes (hasta un máximo definido por N_REBOTES) y la luz
+         * directa incidente sobre el punto de intersección.
+         *
+         * Si el rayo no intersecta ninguna primitiva, se retorna la luz directa
+         * en el punto. En cada rebote se genera una nueva dirección (`wi`)
+         * distribuida uniformemente sobre el hemisferio definido por la normal,
+         * y se llama recursivamente a esta función.
+         * 
+         * @param primitiva Puntero a la primitiva sobre la que incide el rayo
+         * @param wo Dirección de salida del rayo
+         * @param n Normal en el punto de intersección
+         * @param x Punto de intersección donde se evalúa el rayo
+         * @param n_rebotes Número actual de rebotes del rayo
+         * 
+         * @return RGB Radiancia total en 'x' por luz directa e indirecta
          */
-        bool plano_contra_la_luz(Primitiva* p, Luz l);
+        RGB lanzar_rayo(Primitiva* primitiva, Direccion wo, Direccion n, Punto x, int n_rebotes = 0);
+
+
+        /**
+         * @brief Calcula la luz directa que incide sobre un punto de una
+         * primitiva
+         * 
+         * Esta función recorre todas las luces de la escena y evalúa la
+         * contribución directa de cada una sobre el punto dado. Tiene en cuenta
+         * el ángulo de incidencia (coseno), la distancia a la luz, y si hay
+         * oclusión (sombras) por otras primitivas
+         * 
+         * Si se proporciona un valor no nulo de sigma, se aplica una atenuación
+         * exponencial basada en la distancia al cuadrado
+         * 
+         * @param p Puntero a la primitiva sobre la que se calcula la iluminación
+         * @param wo Dirección de salida del rayo
+         * @param n Normal en el punto de intersección
+         * @param x Punto sobre la primitiva donde se evalúa la luz
+         * @param sigma Coeficiente de atenuación exponencial
+         * 
+         * @return RGB Intensidad de luz directa recibida en el punto
+         */
+        RGB calcular_luz_directa(Primitiva* p, Direccion wo, Direccion n, Punto x, double sigma = 0.0);
 
 
     public:

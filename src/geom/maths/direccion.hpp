@@ -10,7 +10,9 @@ class Direccion : public Vector4 {
         Direccion(Vector4 v) : Vector4(v.getX(), v.getY(), v.getZ(), 0) {}
 
         // Operaciones ---------------------------------------------------------
-        friend Vector4 convertir_a_vector4(Direccion d);
+        friend Vector4 convertir_a_vector4(Direccion d) {
+            return Vector4(d.getX(), d.getY(), d.getZ(), 0);
+        }
 
         /**
          * @brief Genera una direccion aleatoria normalizada dentro de la esfera 

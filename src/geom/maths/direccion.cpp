@@ -3,10 +3,6 @@
 #include "aleatorio.hpp"
 
 // ------------------------------ Operaciones ------------------------------- //
-Vector4 convertir_a_vector4(Direccion d) {
-    return Vector4(d.getX(), d.getY(), d.getZ(), 0);
-}
-
 Direccion Direccion::direccion_aleatoria() {
     float x = aleatorio_unitario.get();
     float y = aleatorio_unitario.get();
