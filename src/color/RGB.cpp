@@ -1,5 +1,26 @@
 #include "RGB.hpp"
 
+float RGB::emision_maxima(char* canal) const {
+    double valor; 
+    if(r > g){
+        if(r > b){
+            valor = r;
+            *canal = R;
+        } else {
+            valor = b;
+            *canal = B;
+        }
+    } else {
+        if(g > b){
+            valor = g;
+            *canal = G;
+        } else {
+            valor = b;
+            *canal = B;
+        }
+    }
+    return valor;
+} 
 
 // ----------------------------- Comprobaciones ----------------------------- //
 bool RGB::es_negro() const {

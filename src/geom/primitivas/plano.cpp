@@ -23,3 +23,4 @@ bool Plano::intersecta_con_rayo(const Rayo& rayo, float& t) {
 		// If not, then it's false (because tray and plane are parallel).
 		return false;
 }
+

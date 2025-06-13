@@ -14,9 +14,8 @@ class Esfera : public Primitiva {
 
     public:
         // Constructor ---------------------------------------------------------
-        Esfera(const Punto& c, float r, const string nombre = "",
-            const RGB &emision = RGB())
-            :   Primitiva(nombre, emision), centro(c), radio(r) {}
+        Esfera(const Punto& c, float r, RGB kd, RGB ks, RGB kt, RGB ke, double n_d = N_AIRE, double n_f = N_AIRE, const string nombre = "")
+            :   Primitiva(kd, ks, kt, ke, n_d, n_f, nombre), centro(c), radio(r) {}
 
         // Getters -------------------------------------------------------------
         Punto getCentro() const { return centro; }

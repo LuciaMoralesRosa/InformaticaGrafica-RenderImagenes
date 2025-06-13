@@ -15,16 +15,14 @@ class Plano : public Primitiva {
          * @brief Constructor del plano a partir de una normal y una distancia
          * desde el origen
          */
-        Plano(const Direccion &normal, float d, const string nombre = "",
-            const RGB &emision = RGB())
-            :   Primitiva(nombre, emision), normal(normal.normalizar()), d(d) {}
+        Plano(const Direccion &normal, float d, RGB kd, RGB ks, RGB kt, RGB ke, double n_d = N_AIRE, double n_f = N_AIRE, const string nombre = "")
+            :   Primitiva(kd, ks, kt, ke, n_d, n_f, nombre), normal(normal.normalizar()), d(d) {}
 
         /**
          * @brief Constructor de un plano a partir de una normal y un punto
          */
-        Plano(const Direccion &normal, const Punto &p, const string nombre = "",
-            const RGB &emision = RGB())
-            :   Primitiva(nombre, emision), normal(normal.normalizar()),
+        Plano(const Direccion &normal, const Punto &p, RGB kd, RGB ks, RGB kt, RGB ke, double n_d = N_AIRE, double n_f = N_AIRE, const string nombre = "")
+            :   Primitiva(kd, ks, kt, ke, n_d, n_f, nombre), normal(normal.normalizar()),
                 d(abs(prod_escalar(normal, distancia(Punto(), p)))) {}
 
 

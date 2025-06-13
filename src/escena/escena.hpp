@@ -85,7 +85,7 @@ class Escena {
          * 
          * @return RGB Radiancia total en 'x' por luz directa e indirecta
          */
-        RGB lanzar_rayo(Primitiva* primitiva, Direccion wo, Direccion n, Punto x, int n_rebotes = 0);
+        RGB lanzar_rayo(Primitiva* primitiva, Direccion wo, Direccion n, Punto x, int nrebotes = 0);
 
 
         /**

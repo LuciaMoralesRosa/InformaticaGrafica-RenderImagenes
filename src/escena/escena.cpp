@@ -1,6 +1,7 @@
 #include "escena.hpp"
 
 #include <thread>
+#include <list>
 
 #include "sample_aleatoria.hpp"
 #include "aceleracion/sectores.hpp"
@@ -16,10 +17,38 @@
 
 const int N_REBOTES = 8;
 
-// -------------------------- Operaciones internas -------------------------- //
 
-RGB evaluacion_brdf(Primitiva* primitiva) {
-	return primitiva->getEmision() / M_PI;
+
+// -------------------------- Operaciones internas -------------------------- //
+RGB colorInterseccion(const Primitiva* primitiva, vector<Primitiva*> primitivas,
+	const Punto& pInterseccion, Luz& luz,
+	RGB& colorDisipado, EVENTO efecto, Direccion direccionRayo){
+
+	// Comprobar si el plano esta contra la luz
+	//if(primitiva->planoContraLuz(camara, luz, pInterseccion)) {
+	//	// Si está contra la luz -> negro.
+	//	return RGB(0);
+	//}
+
+	Direccion distanciaLuz = distancia(luz.getCentro(), pInterseccion);
+	float modDistancia = distanciaLuz.modulo();
+	float t;
+
+	// Comprobar si alguna primitiva le da sombra
+	for (Primitiva* p : primitivas){
+		if(p->intersecta_con_rayo(Rayo(luz.getCentro(), -distanciaLuz), t)
+		&& (1 - t) * modDistancia > 1e-6
+		&& (p != primitiva || distancia(pInterseccion, luz.getCentro() - t * (distanciaLuz)).modulo() > 1e-4)) {
+			return RGB(0);
+		}
+	}
+
+	// Esta a la luz -> calcular color
+	RGB Li = luz.getPotencia() / (pow(modDistancia, 2));
+	float cosine = abs(prod_escalar(primitiva->getNormal(pInterseccion), distanciaLuz.normalizar()));
+
+	return Li * primitiva->getFr(efecto, direccionRayo, pInterseccion, primitiva->getNormal(pInterseccion)) * cosine * colorDisipado;
+
 }
 
 // -------------------------- Operaciones internas -------------------------- //
@@ -31,10 +60,16 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 	int y_abajo, int y_arriba) {
 	generador_aleatorios aleatorio(0, 1);	// Generador de numeros aleatorios
 	RGB color_pixel;						// Color acumulado por píxel
-	Rayo rayo;								// Rayo generado desde la cámara
+	Rayo rayo_camara;						// Rayo generado desde la cámara
 
 	Primitiva* primitiva = nullptr;
-	float t = 0.0f;
+	float minT, t = 0.0f;
+	Punto p_interseccion;
+
+	RGB color_emitido;
+	RGB color_rayo;
+	EVENTO efecto;
+	Direccion direccion_rayo;
 
 	// Recorrer todos los pixeles del sector
 	for (int x = x_izquierda; x < x_derecha; x++){
@@ -44,11 +79,68 @@ void Escena::renderizar_sector(int RPP, int x_izquierda, int x_derecha,
 			
 			// Multiples rayos por pixel para antialiasing
 			for (int k = 0; k < RPP; k++) {
-                rayo = camara.rayo_aleatorio_en_seccion(y, x, aleatorio);
-				if(intersecta_con_primitiva(primitiva, rayo, t)) {
-					Punto interseccion = rayo(t-1e-4);
-					color_pixel += lanzar_rayo(primitiva, rayo.getDireccion(),
-					primitiva->getNormal(interseccion), interseccion);				
+				color_emitido = RGB(255, 255, 255);
+				color_rayo = RGB();
+                rayo_camara = camara.rayo_aleatorio_en_seccion(y, x, aleatorio);
+				bool terminar = false;
+				int nRebotes = 0;
+				//while (!terminar || nRebotes < N_REBOTES) {
+				while (nRebotes < N_REBOTES) {
+
+					// Obtener la figura y el punto de interseccion
+					minT = 1e6;
+					primitiva = nullptr;
+					for (Primitiva* p : primitivas){
+						if (p->intersecta_con_rayo(rayo_camara, t) && t < minT) {
+							// Si intersecta y tiene menor distancia guardamos el dato
+							minT = t;
+							primitiva = p;
+						}
+					}
+
+					if (primitiva == nullptr) {
+						// Si no ha intersectado con ninguna primitiva
+						break;
+					} 
+
+					p_interseccion = rayo_camara.getOrigen() + minT*rayo_camara.getDireccion();
+					efecto = primitiva->evento_aleatorio();
+
+					switch(efecto) {
+						case ABSORCION:
+							terminar = true;
+							break;
+						case EMISION:
+							color_rayo += primitiva->k_e * color_emitido;
+							terminar = true;
+							break;
+						case ESPECULAR:
+							color_emitido *= primitiva->getFr(efecto, direccion_rayo, p_interseccion, primitiva->getNormal(p_interseccion));
+							break;
+						case REFRACCION:
+							color_emitido *= primitiva->getFr(efecto, direccion_rayo, p_interseccion, primitiva->getNormal(p_interseccion));
+							break;
+						default: // DIFUSO
+							for (Luz luz : luces){
+								color_rayo += colorInterseccion(primitiva, primitivas,
+									p_interseccion, luz,
+									color_emitido, efecto, direccion_rayo);
+							}
+							color_emitido *= M_PI * primitiva->getFr(efecto, direccion_rayo, p_interseccion, primitiva->getNormal(p_interseccion));
+							break;
+					}
+					
+					// Update the ray.
+					p_interseccion = p_interseccion + 1e-4 * direccion_rayo;
+					rayo_camara = Rayo(p_interseccion, direccion_rayo);
+
+					nRebotes++;
+				}
+				if (isnan(color_rayo[0]) || isnan(color_rayo[1]) || isnan(color_rayo[2])){
+					k--;
+				}
+				else{
+					color_pixel += color_rayo;
 				}
 			}
 
@@ -76,7 +168,7 @@ RGB Escena::calcular_luz_directa(Primitiva* p, Direccion wo, Direccion n, Punto 
 
             if (intersecta_con_primitiva(primitiva_bloqueo, rayo_sombra, distancia) &&
 				distancia >= sqrt(d_cuadrado) - 0.0001) {
-		        RGB fr = evaluacion_brdf(p);
+		        RGB fr = RGB(); //evaluacion_brdf(p);
 				RGB potencia = luz.getPotencia();
 
 				RGB contribucion = (coseno * fr) * (potencia / d_cuadrado);
@@ -116,7 +208,7 @@ RGB Escena::lanzar_rayo(Primitiva* primitiva, Direccion wo, Direccion n, Punto x
 		return calcular_luz_directa(primitiva, wo, normal, x);
 	}
 
-	RGB fr = primitiva->getEmision() / primitiva->getEmision().emision_maxima();
+	RGB fr = RGB();/*primitiva->getEmision() / primitiva->getEmision().emision_maxima();*/
 	RGB L = fr * lanzar_rayo(p, wi, p->getNormal(punto_interseccion), punto_interseccion, n_rebotes)
 			+ calcular_luz_directa(primitiva, wo, normal, x);
 
